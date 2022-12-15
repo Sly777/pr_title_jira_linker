@@ -199,10 +199,21 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(2186));
+const github = __importStar(__nccwpck_require__(5438));
 const config_1 = __nccwpck_require__(88);
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
+            const token = process.env['GITHUB_TOKEN'];
+            if (!token) {
+                core.setFailed('Requires: GITHUB_TOKEN');
+                return;
+            }
+            if (github.context.eventName !== 'pull_request') {
+                core.info(`Skipping PR: this isn't a pull_request event for us to handle`);
+                core.info(`Tip: if you think this is a mistake, did you make sure to run this action in a 'pull_request' event?`);
+                return;
+            }
             const PRTitle = (0, config_1.getPRTitle)();
             const branchName = (0, config_1.getBranchName)();
             const jiraID = (0, config_1.getJiraTicket)(branchName !== null && branchName !== void 0 ? branchName : '');
@@ -221,7 +232,17 @@ function run() {
             }
             const formattedTitle = (0, config_1.conventionalTitle)(jiraID, PRTitle);
             core.debug(`Formatted text : ${formattedTitle}`);
+            const octokit = github.getOctokit(token);
+            const pull_number = github.context.payload.pull_request.number;
+            const owner = github.context.repo.owner;
+            const repo = github.context.repo.repo;
             core.setOutput('formattedText', formattedTitle);
+            yield octokit.rest.pulls.update({
+                owner,
+                repo,
+                pull_number,
+                title: formattedTitle
+            });
         }
         catch (error) {
             if (error instanceof Error)

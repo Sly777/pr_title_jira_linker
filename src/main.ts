@@ -1,4 +1,5 @@
 import * as core from '@actions/core'
+import * as github from '@actions/github'
 import {
   checkBranch,
   checkPRTitle,
@@ -11,6 +12,20 @@ import {
 
 async function run(): Promise<void> {
   try {
+    const token = process.env['GITHUB_TOKEN']
+    if (!token) {
+      core.setFailed('Requires: GITHUB_TOKEN')
+      return
+    }
+
+    if (github.context.eventName !== 'pull_request') {
+      core.info(`Skipping PR: this isn't a pull_request event for us to handle`)
+      core.info(
+        `Tip: if you think this is a mistake, did you make sure to run this action in a 'pull_request' event?`
+      )
+      return
+    }
+
     const PRTitle = getPRTitle()
     const branchName = getBranchName()
     const jiraID = getJiraTicket(branchName ?? '')
@@ -34,7 +49,20 @@ async function run(): Promise<void> {
     const formattedTitle = conventionalTitle(jiraID, PRTitle)
 
     core.debug(`Formatted text : ${formattedTitle}`)
+
+    const octokit = github.getOctokit(token)
+    const pull_number = github.context.payload.pull_request!.number
+    const owner = github.context.repo.owner
+    const repo = github.context.repo.repo
+
     core.setOutput('formattedText', formattedTitle)
+
+    await octokit.rest.pulls.update({
+      owner,
+      repo,
+      pull_number,
+      title: formattedTitle
+    })
   } catch (error) {
     if (error instanceof Error) core.setFailed(error.message)
   }
