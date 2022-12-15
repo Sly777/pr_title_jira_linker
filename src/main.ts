@@ -35,6 +35,10 @@ async function run(): Promise<void> {
       return
     }
 
+    core.debug(`PRTitle: ${PRTitle}`)
+    core.debug(`branchName: ${branchName}`)
+    core.debug(`jiraID: ${jiraID}`)
+
     if (!checkBranch(branchName)) {
       core.debug('The branch is ignored by the configuration rule')
       return
@@ -42,7 +46,11 @@ async function run(): Promise<void> {
 
     if (checkPRTitle(PRTitle, jiraID) === checkPRTitleReturns.INCLUDED) {
       core.debug('PR has correct title format already')
-      core.setOutput('formattedText', PRTitle)
+      return
+    }
+
+    if (checkPRTitle(PRTitle, jiraID) === checkPRTitleReturns.ERROR) {
+      core.setFailed('PR title has some issues')
       return
     }
 
@@ -54,8 +62,6 @@ async function run(): Promise<void> {
     const pull_number = github.context.payload.pull_request!.number
     const owner = github.context.repo.owner
     const repo = github.context.repo.repo
-
-    core.setOutput('formattedText', formattedTitle)
 
     await octokit.rest.pulls.update({
       owner,

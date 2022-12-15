@@ -170,9 +170,6 @@ export function checkPRTitle(
       return checkPRTitleReturns.INCLUDED
     }
   } else {
-    core.setFailed(
-      `PR title format is not correct, it must follow conventional commit standard`
-    )
     return checkPRTitleReturns.ERROR
   }
 }

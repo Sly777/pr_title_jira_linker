@@ -141,7 +141,6 @@ function checkPRTitle(message, jiraTicket) {
         }
     }
     else {
-        core.setFailed(`PR title format is not correct, it must follow conventional commit standard`);
         return checkPRTitleReturns.ERROR;
     }
 }
@@ -221,13 +220,19 @@ function run() {
                 core.setFailed('Actions variables are empty');
                 return;
             }
+            core.debug(`PRTitle: ${PRTitle}`);
+            core.debug(`branchName: ${branchName}`);
+            core.debug(`jiraID: ${jiraID}`);
             if (!(0, config_1.checkBranch)(branchName)) {
                 core.debug('The branch is ignored by the configuration rule');
                 return;
             }
             if ((0, config_1.checkPRTitle)(PRTitle, jiraID) === config_1.checkPRTitleReturns.INCLUDED) {
                 core.debug('PR has correct title format already');
-                core.setOutput('formattedText', PRTitle);
+                return;
+            }
+            if ((0, config_1.checkPRTitle)(PRTitle, jiraID) === config_1.checkPRTitleReturns.ERROR) {
+                core.setFailed('PR title has some issues');
                 return;
             }
             const formattedTitle = (0, config_1.conventionalTitle)(jiraID, PRTitle);
@@ -236,7 +241,6 @@ function run() {
             const pull_number = github.context.payload.pull_request.number;
             const owner = github.context.repo.owner;
             const repo = github.context.repo.repo;
-            core.setOutput('formattedText', formattedTitle);
             yield octokit.rest.pulls.update({
                 owner,
                 repo,
