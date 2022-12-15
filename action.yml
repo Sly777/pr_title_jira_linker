@@ -1,11 +1,27 @@
-name: 'Your name here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+name: 'PR Title Jira Linker'
+description: 'Adding JIRA Ticket ID into PR Title automatically'
+author: 'Sly777'
 inputs:
-  milliseconds: # change this
-    required: true
-    description: 'input description here'
-    default: 'default value if applicable'
+  conventionalCommitPattern:
+    required: false
+    description: 'Conventional Commit Pattern'
+    default: '^([a-z]+)(\\([a-z0-9.,-_ ]+\\))?!?: ([\\w \\S]+)$'
+  jiraTicketPattern:
+    required: false
+    description: 'JIRA ticket pattern'
+    default: '([A-Z]+-\\d+)'
+  messagePattern:
+    required: false
+    description: 'Message Pattern'
+    default:  '[$J] $M'
+  ignoredBranchesPattern:
+    required: false
+    description: 'Ignored Branch Pattern'
+    default: '^(master|main|dev|develop|development|release|(nojira-.*))$'
+  replaceAll:
+    required: false
+    description: 'Replacing all texts on title'
+    default: 'true'
 runs:
   using: 'node16'
   main: 'dist/index.js'

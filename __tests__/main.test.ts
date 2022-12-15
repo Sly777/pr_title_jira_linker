@@ -1,29 +1,45 @@
-import {wait} from '../src/wait'
-import * as process from 'process'
-import * as cp from 'child_process'
-import * as path from 'path'
 import {expect, test} from '@jest/globals'
+import {
+  checkBranch,
+  checkPRTitle,
+  checkPRTitleReturns,
+  conventionalTitle,
+  getFormattedPRTitle
+} from '../src/config'
 
-test('throws invalid number', async () => {
-  const input = parseInt('foo', 10)
-  await expect(wait(input)).rejects.toThrow('milliseconds not a number')
+test('getFormattedPRTitle', async () => {
+  const input = getFormattedPRTitle('TEST-11', 'feat: test example info')
+  expect(input).toEqual('[TEST-11] feat: test example info')
 })
 
-test('wait 500 ms', async () => {
-  const start = new Date()
-  await wait(500)
-  const end = new Date()
-  var delta = Math.abs(end.getTime() - start.getTime())
-  expect(delta).toBeGreaterThan(450)
+test('conventionalTitle', async () => {
+  expect(conventionalTitle('feat: test example info', 'TEST-11')).toEqual(
+    'feat: [TEST-11] test example info'
+  )
+  expect(conventionalTitle('fix: test example info', 'TEST-11')).toEqual(
+    'fix: [TEST-11] test example info'
+  )
+  expect(conventionalTitle('test example info', 'TEST-11')).toBeUndefined()
 })
 
-// shows how the runner will run a javascript action with env / stdout protocol
-test('test runs', () => {
-  process.env['INPUT_MILLISECONDS'] = '500'
-  const np = process.execPath
-  const ip = path.join(__dirname, '..', 'lib', 'main.js')
-  const options: cp.ExecFileSyncOptions = {
-    env: process.env
-  }
-  console.log(cp.execFileSync(np, [ip], options).toString())
+test('checkPRTitle', async () => {
+  expect(checkPRTitle('feat: [TEST-11] test example info', 'TEST-11')).toEqual(
+    checkPRTitleReturns.INCLUDED
+  )
+  expect(checkPRTitle('[TEST-11] test example info', 'TEST-11')).toEqual(
+    checkPRTitleReturns.ERROR
+  )
+  expect(checkPRTitle('feat: test example info', 'TEST-11')).toEqual(
+    checkPRTitleReturns.NOT_INCLUDED
+  )
+})
+
+test('checkBranch', async () => {
+  expect(checkBranch('master')).toBeFalsy()
+  expect(checkBranch('dev')).toBeFalsy()
+  expect(checkBranch('nojira-testbranch')).toBeFalsy()
+  expect(checkBranch('nojira-testtest')).toBeFalsy()
+  expect(checkBranch('TEST-11')).toBeTruthy()
+  expect(checkBranch('TEST-11_testbranch')).toBeTruthy()
+  expect(checkBranch('TEST-11/testbranch')).toBeTruthy()
 })
