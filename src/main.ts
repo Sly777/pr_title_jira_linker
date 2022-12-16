@@ -47,6 +47,15 @@ async function run(): Promise<void> {
       return
     }
 
+    // there is no reason to have ignore check here because it checks earlier
+    if (!getJiraTicket(branchName)) {
+      core.setFailed('Branch name has no Jira Ticket ID')
+      core.setOutput('errortype', 'jiraonbranch')
+      core.setOutput('branchname', branchName)
+      core.setOutput('title', PRTitle)
+      return
+    }
+
     if (checkPRTitle(PRTitle, jiraID) === checkPRTitleReturns.INCLUDED) {
       core.debug('PR has correct title format already')
       return
@@ -55,15 +64,6 @@ async function run(): Promise<void> {
     if (checkPRTitle(PRTitle, jiraID) === checkPRTitleReturns.ERROR) {
       core.setFailed('PR title has some issues')
       core.setOutput('errortype', 'prtitle')
-      core.setOutput('branchname', branchName)
-      core.setOutput('title', PRTitle)
-      return
-    }
-
-    // there is no reason to have ignore check here because it checks earlier
-    if (!getJiraTicket(branchName)) {
-      core.setFailed('Branch name has no Jira Ticket ID')
-      core.setOutput('errortype', 'jiraonbranch')
       core.setOutput('branchname', branchName)
       core.setOutput('title', PRTitle)
       return
