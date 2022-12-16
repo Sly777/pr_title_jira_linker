@@ -51,6 +51,6 @@ test('getJiraTicket', async () => {
   expect(getJiraTicket('testname_TEST-11')).not.toBeNull()
   expect(getJiraTicket('testname_TEST-11_testname')).not.toBeNull()
   expect(getJiraTicket('TEST-11/testname')).not.toBeNull()
-  expect(getJiraTicket('testname')).toBeNull()
-  expect(getJiraTicket('test-branch')).toBeNull()
+  expect(getJiraTicket('testname')).toEqual('')
+  expect(getJiraTicket('test-branch')).toEqual('')
 })

@@ -57,7 +57,7 @@ function getBranchName() {
     core.debug(`Head branch -> ${headBranch}`);
     if (!headBranch || !baseBranch) {
         core.setFailed('Action not find branches');
-        return;
+        return '';
     }
     core.debug(`get branch name : ${headBranch}`);
     return headBranch;
@@ -69,19 +69,19 @@ function getJiraTicket(branchName) {
     const matched = jiraIdPattern.exec(branchName);
     const jiraTicket = matched && matched[0];
     core.debug(`get jira ticket : ${jiraTicket}`);
-    return jiraTicket ? jiraTicket.toUpperCase() : null;
+    return jiraTicket ? jiraTicket.toUpperCase() : '';
 }
 exports.getJiraTicket = getJiraTicket;
 function getPRTitle() {
     const pullRequest = github.context.payload.pull_request;
     if (!pullRequest) {
         core.setFailed('Action not run in pull_request context.');
-        return;
+        return '';
     }
     const prTitle = pullRequest.title;
     if (!prTitle) {
         core.setFailed('Action couldnt find the title on PR');
-        return;
+        return '';
     }
     core.debug(`get pr title : ${prTitle}`);
     return prTitle;
@@ -227,7 +227,7 @@ function run() {
             const PRTitle = (0, config_1.getPRTitle)();
             const branchName = (0, config_1.getBranchName)();
             const jiraID = (0, config_1.getJiraTicket)(branchName !== null && branchName !== void 0 ? branchName : '');
-            if (!PRTitle || !branchName || !jiraID) {
+            if (!PRTitle && !branchName && !jiraID) {
                 core.setFailed('Actions variables are empty');
                 return;
             }
@@ -241,6 +241,14 @@ function run() {
                 core.setOutput('title', PRTitle);
                 return;
             }
+            // there is no reason to have ignore check here because it checks earlier
+            if (!(0, config_1.getJiraTicket)(branchName)) {
+                core.setFailed('Branch name has no Jira Ticket ID');
+                core.setOutput('errortype', 'jiraonbranch');
+                core.setOutput('branchname', branchName);
+                core.setOutput('title', PRTitle);
+                return;
+            }
             if ((0, config_1.checkPRTitle)(PRTitle, jiraID) === config_1.checkPRTitleReturns.INCLUDED) {
                 core.debug('PR has correct title format already');
                 return;
@@ -248,14 +256,6 @@ function run() {
             if ((0, config_1.checkPRTitle)(PRTitle, jiraID) === config_1.checkPRTitleReturns.ERROR) {
                 core.setFailed('PR title has some issues');
                 core.setOutput('errortype', 'prtitle');
-                core.setOutput('branchname', branchName);
-                core.setOutput('title', PRTitle);
-                return;
-            }
-            // there is no reason to have ignore check here because it checks earlier
-            if (!(0, config_1.getJiraTicket)(branchName)) {
-                core.setFailed('Branch name has no Jira Ticket ID');
-                core.setOutput('errortype', 'jiraonbranch');
                 core.setOutput('branchname', branchName);
                 core.setOutput('title', PRTitle);
                 return;

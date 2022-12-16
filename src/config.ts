@@ -45,7 +45,7 @@ function escapeReplacement(str: string): string {
   return str.replace(/[$]/, '$$$$')
 }
 
-export function getBranchName(): string | undefined {
+export function getBranchName(): string {
   core.debug('gitBranchName')
 
   const pullRequest = github.context.payload.pull_request as PullRequestParams
@@ -59,14 +59,14 @@ export function getBranchName(): string | undefined {
 
   if (!headBranch || !baseBranch) {
     core.setFailed('Action not find branches')
-    return
+    return ''
   }
 
   core.debug(`get branch name : ${headBranch}`)
   return headBranch
 }
 
-export function getJiraTicket(branchName: string): string | null {
+export function getJiraTicket(branchName: string): string {
   core.debug('getJiraTicket')
 
   const jiraIdPattern = new RegExp(getConfig().jiraTicketPattern, 'i')
@@ -74,21 +74,21 @@ export function getJiraTicket(branchName: string): string | null {
   const jiraTicket = matched && matched[0]
 
   core.debug(`get jira ticket : ${jiraTicket}`)
-  return jiraTicket ? jiraTicket.toUpperCase() : null
+  return jiraTicket ? jiraTicket.toUpperCase() : ''
 }
 
-export function getPRTitle(): string | undefined {
+export function getPRTitle(): string {
   const pullRequest = github.context.payload.pull_request as PullRequestParams
   if (!pullRequest) {
     core.setFailed('Action not run in pull_request context.')
-    return
+    return ''
   }
 
   const prTitle = pullRequest.title
 
   if (!prTitle) {
     core.setFailed('Action couldnt find the title on PR')
-    return
+    return ''
   }
 
   core.debug(`get pr title : ${prTitle}`)
