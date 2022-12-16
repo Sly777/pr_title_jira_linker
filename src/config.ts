@@ -62,6 +62,7 @@ export function getBranchName(): string | undefined {
     return
   }
 
+  core.debug(`get branch name : ${headBranch}`)
   return headBranch
 }
 
@@ -72,6 +73,7 @@ export function getJiraTicket(branchName: string): string | null {
   const matched = jiraIdPattern.exec(branchName)
   const jiraTicket = matched && matched[0]
 
+  core.debug(`get jira ticket : ${jiraTicket}`)
   return jiraTicket ? jiraTicket.toUpperCase() : null
 }
 
@@ -89,6 +91,7 @@ export function getPRTitle(): string | undefined {
     return
   }
 
+  core.debug(`get pr title : ${prTitle}`)
   return prTitle
 }
 
@@ -106,6 +109,7 @@ export function getFormattedPRTitle(
   jiraTicket: string,
   message: string
 ): string {
+  core.debug(`getFormattedPRTitle: ${jiraTicket} - ${message}`)
   const config = getConfig()
 
   const jiraTicketRegExp = new RegExp('\\$J', config.replaceAll ? 'g' : '')
@@ -123,6 +127,7 @@ export function conventionalTitle(
   message: string,
   jiraTicket: string
 ): string | undefined {
+  core.debug(`conventionalTitle: ${message} - ${jiraTicket}`)
   const config = getConfig()
 
   const conventionalCommitRegExp = new RegExp(
@@ -142,6 +147,7 @@ export function conventionalTitle(
       core.debug(`jira ticket included on title`)
     }
   } else {
+    core.debug(`error on conventionalTitle - ${match}`)
     core.setFailed(
       `PR title format is not correct, it must follow conventional commit standard`
     )
@@ -152,6 +158,7 @@ export function checkPRTitle(
   message: string,
   jiraTicket: string
 ): checkPRTitleReturns {
+  core.debug(`checkPRTitle: ${message} - ${jiraTicket}`)
   const config = getConfig()
 
   const conventionalCommitRegExp = new RegExp(
@@ -164,17 +171,20 @@ export function checkPRTitle(
 
   if (match) {
     if (!msg.includes(jiraTicket)) {
+      core.debug('jira ticket not included on title')
       return checkPRTitleReturns.NOT_INCLUDED
     } else {
       core.debug(`jira ticket included on title`)
       return checkPRTitleReturns.INCLUDED
     }
   } else {
+    core.debug(`there is an issue on title - ${match}`)
     return checkPRTitleReturns.ERROR
   }
 }
 
 export function checkBranch(branchName: string): boolean {
+  core.debug(`checkBranch: ${branchName}`)
   const config = getConfig()
   const ignored = new RegExp(config.ignoredBranchesPattern || '^$', 'i')
 
@@ -182,5 +192,7 @@ export function checkBranch(branchName: string): boolean {
     core.debug('The branch is ignored by the configuration rule')
     return false
   }
+
+  core.debug('branch name is correct')
   return true
 }

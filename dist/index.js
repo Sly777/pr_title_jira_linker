@@ -59,6 +59,7 @@ function getBranchName() {
         core.setFailed('Action not find branches');
         return;
     }
+    core.debug(`get branch name : ${headBranch}`);
     return headBranch;
 }
 exports.getBranchName = getBranchName;
@@ -67,6 +68,7 @@ function getJiraTicket(branchName) {
     const jiraIdPattern = new RegExp(getConfig().jiraTicketPattern, 'i');
     const matched = jiraIdPattern.exec(branchName);
     const jiraTicket = matched && matched[0];
+    core.debug(`get jira ticket : ${jiraTicket}`);
     return jiraTicket ? jiraTicket.toUpperCase() : null;
 }
 exports.getJiraTicket = getJiraTicket;
@@ -81,6 +83,7 @@ function getPRTitle() {
         core.setFailed('Action couldnt find the title on PR');
         return;
     }
+    core.debug(`get pr title : ${prTitle}`);
     return prTitle;
 }
 exports.getPRTitle = getPRTitle;
@@ -94,6 +97,7 @@ function getConfig(config) {
 }
 exports.getConfig = getConfig;
 function getFormattedPRTitle(jiraTicket, message) {
+    core.debug(`getFormattedPRTitle: ${jiraTicket} - ${message}`);
     const config = getConfig();
     const jiraTicketRegExp = new RegExp('\\$J', config.replaceAll ? 'g' : '');
     const messageRegExp = new RegExp('\\$M', config.replaceAll ? 'g' : '');
@@ -106,6 +110,7 @@ function getFormattedPRTitle(jiraTicket, message) {
 exports.getFormattedPRTitle = getFormattedPRTitle;
 function conventionalTitle(message, jiraTicket) {
     var _a;
+    core.debug(`conventionalTitle: ${message} - ${jiraTicket}`);
     const config = getConfig();
     const conventionalCommitRegExp = new RegExp(config.conventionalCommitPattern, 'g');
     conventionalCommitRegExp.lastIndex = -1;
@@ -121,18 +126,21 @@ function conventionalTitle(message, jiraTicket) {
         }
     }
     else {
+        core.debug(`error on conventionalTitle - ${match}`);
         core.setFailed(`PR title format is not correct, it must follow conventional commit standard`);
     }
 }
 exports.conventionalTitle = conventionalTitle;
 function checkPRTitle(message, jiraTicket) {
     var _a;
+    core.debug(`checkPRTitle: ${message} - ${jiraTicket}`);
     const config = getConfig();
     const conventionalCommitRegExp = new RegExp(config.conventionalCommitPattern, 'g');
     conventionalCommitRegExp.lastIndex = -1;
     const [match, _type, _scope, msg] = (_a = conventionalCommitRegExp.exec(message)) !== null && _a !== void 0 ? _a : [];
     if (match) {
         if (!msg.includes(jiraTicket)) {
+            core.debug('jira ticket not included on title');
             return checkPRTitleReturns.NOT_INCLUDED;
         }
         else {
@@ -141,17 +149,20 @@ function checkPRTitle(message, jiraTicket) {
         }
     }
     else {
+        core.debug(`there is an issue on title - ${match}`);
         return checkPRTitleReturns.ERROR;
     }
 }
 exports.checkPRTitle = checkPRTitle;
 function checkBranch(branchName) {
+    core.debug(`checkBranch: ${branchName}`);
     const config = getConfig();
     const ignored = new RegExp(config.ignoredBranchesPattern || '^$', 'i');
     if (ignored.test(branchName)) {
         core.debug('The branch is ignored by the configuration rule');
         return false;
     }
+    core.debug('branch name is correct');
     return true;
 }
 exports.checkBranch = checkBranch;
@@ -235,7 +246,7 @@ function run() {
                 core.setFailed('PR title has some issues');
                 return;
             }
-            const formattedTitle = (0, config_1.conventionalTitle)(jiraID, PRTitle);
+            const formattedTitle = (0, config_1.conventionalTitle)(PRTitle, jiraID);
             core.debug(`Formatted text : ${formattedTitle}`);
             const octokit = github.getOctokit(token);
             const pull_number = github.context.payload.pull_request.number;
