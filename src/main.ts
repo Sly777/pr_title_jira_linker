@@ -30,7 +30,7 @@ async function run(): Promise<void> {
     const branchName = getBranchName()
     const jiraID = getJiraTicket(branchName ?? '')
 
-    if (!PRTitle || !branchName || !jiraID) {
+    if (!PRTitle && !branchName && !jiraID) {
       core.setFailed('Actions variables are empty')
       return
     }
