@@ -236,6 +236,9 @@ function run() {
             core.debug(`jiraID: ${jiraID}`);
             if (!(0, config_1.checkBranch)(branchName)) {
                 core.debug('The branch is ignored by the configuration rule');
+                core.setOutput('errortype', 'branchignore');
+                core.setOutput('branchname', branchName);
+                core.setOutput('title', PRTitle);
                 return;
             }
             if ((0, config_1.checkPRTitle)(PRTitle, jiraID) === config_1.checkPRTitleReturns.INCLUDED) {
@@ -244,6 +247,17 @@ function run() {
             }
             if ((0, config_1.checkPRTitle)(PRTitle, jiraID) === config_1.checkPRTitleReturns.ERROR) {
                 core.setFailed('PR title has some issues');
+                core.setOutput('errortype', 'prtitle');
+                core.setOutput('branchname', branchName);
+                core.setOutput('title', PRTitle);
+                return;
+            }
+            // there is no reason to have ignore check here because it checks earlier
+            if (!(0, config_1.getJiraTicket)(branchName)) {
+                core.setFailed('Branch name has no Jira Ticket ID');
+                core.setOutput('errortype', 'jiraonbranch');
+                core.setOutput('branchname', branchName);
+                core.setOutput('title', PRTitle);
                 return;
             }
             const formattedTitle = (0, config_1.conventionalTitle)(PRTitle, jiraID);

@@ -4,7 +4,8 @@ import {
   checkPRTitle,
   checkPRTitleReturns,
   conventionalTitle,
-  getFormattedPRTitle
+  getFormattedPRTitle,
+  getJiraTicket
 } from '../src/config'
 
 test('getFormattedPRTitle', async () => {
@@ -42,4 +43,14 @@ test('checkBranch', async () => {
   expect(checkBranch('TEST-11')).toBeTruthy()
   expect(checkBranch('TEST-11_testbranch')).toBeTruthy()
   expect(checkBranch('TEST-11/testbranch')).toBeTruthy()
+})
+
+test('getJiraTicket', async () => {
+  expect(getJiraTicket('TEST-11')).not.toBeNull()
+  expect(getJiraTicket('TEST-11_testname')).not.toBeNull()
+  expect(getJiraTicket('testname_TEST-11')).not.toBeNull()
+  expect(getJiraTicket('testname_TEST-11_testname')).not.toBeNull()
+  expect(getJiraTicket('TEST-11/testname')).not.toBeNull()
+  expect(getJiraTicket('testname')).toBeNull()
+  expect(getJiraTicket('test-branch')).toBeNull()
 })

@@ -41,6 +41,9 @@ async function run(): Promise<void> {
 
     if (!checkBranch(branchName)) {
       core.debug('The branch is ignored by the configuration rule')
+      core.setOutput('errortype', 'branchignore')
+      core.setOutput('branchname', branchName)
+      core.setOutput('title', PRTitle)
       return
     }
 
@@ -51,6 +54,18 @@ async function run(): Promise<void> {
 
     if (checkPRTitle(PRTitle, jiraID) === checkPRTitleReturns.ERROR) {
       core.setFailed('PR title has some issues')
+      core.setOutput('errortype', 'prtitle')
+      core.setOutput('branchname', branchName)
+      core.setOutput('title', PRTitle)
+      return
+    }
+
+    // there is no reason to have ignore check here because it checks earlier
+    if (!getJiraTicket(branchName)) {
+      core.setFailed('Branch name has no Jira Ticket ID')
+      core.setOutput('errortype', 'jiraonbranch')
+      core.setOutput('branchname', branchName)
+      core.setOutput('title', PRTitle)
       return
     }
 

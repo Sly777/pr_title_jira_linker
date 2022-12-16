@@ -22,6 +22,13 @@ inputs:
     required: false
     description: 'Replacing all texts on title'
     default: 'true'
+outputs:
+  errortype:
+    description: 'branchname | prtitle | jiraonbranch | branchignore'
+  branchname:
+    description: 'Branch Name'
+  title:
+    description: 'PR Title'
 runs:
   using: 'node16'
   main: 'dist/index.js'
