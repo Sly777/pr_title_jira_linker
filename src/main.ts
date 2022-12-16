@@ -54,7 +54,7 @@ async function run(): Promise<void> {
       return
     }
 
-    const formattedTitle = conventionalTitle(jiraID, PRTitle)
+    const formattedTitle = conventionalTitle(PRTitle, jiraID)
 
     core.debug(`Formatted text : ${formattedTitle}`)
 
